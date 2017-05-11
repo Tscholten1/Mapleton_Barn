@@ -1,0 +1,163 @@
+<html>
+
+<head>
+    <title>Mapleton Barn</title>
+    <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+
+    
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.3/dist/leaflet.css"
+   integrity="sha512-07I2e+7D8p6he1SIM+1twR5TIrhUQn9+I6yjqD53JQjFiMf8EtC93ty0/5vJTZGF8aAocvHYNEDJajGdNx1IsQ=="
+   crossorigin=""/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/5.0.0/normalize.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.1/dist/leaflet.css" />
+    <link href="https://fonts.googleapis.com/css?family=Noto+Sans" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Lora" rel="stylesheet">
+
+    <style>
+        body {
+            margin: 0px;
+            padding: 0px;
+            background: none;
+            font-family: "Noto Sans", sans-serif;
+            color: #3d3d3d;
+/*            background-image: image('Mapleton_Barn.png');
+            background-color: transparent;*/
+        }
+        
+        section {
+            width: 960px;
+            margin: 20px auto;
+        }
+        
+        h1 {
+            width: 960px;
+            margin: 20px auto;
+            font-family: "Lora", serif;
+            letter-spacing: .04em;
+        }
+        
+        h2 {
+            font-family: "Lora", serif;
+            letter-spacing: .04em;
+        }
+        
+        p {
+            font-size: 1em;
+            line-height: 1.5em;
+        }
+        
+        a {
+            color: #005daa;
+            font-weight: bold;
+            text-decoration: none;
+        }
+        
+        a:hover {
+            text-decoration: underline;
+        }
+        
+        ul {
+            padding-left: 20px;
+        }
+        
+        li {
+            margin: 10px 0
+        }
+        
+        #map {
+            width: 960px;
+            height: 540px;
+            margin: 10px auto;
+            border: 2px solid #d3d3d3;
+            background-color: transparent;
+        }
+        .markdown-body img {
+            
+/*            background-color: rgba(0,0,0,0);*/
+        }
+    
+    </style>
+
+</head>
+
+<body>
+    <h1>Where are you in relation to Mapleton Barn?</h1>
+
+    <div id='map'></div>
+
+    <section>
+        <h2>A little bit about Mapleton Barn</h2>
+
+        <p>Celebrate the charm and tranquility that Mapleton Barn has to offer. Complete with original barn boards and exposed beams, this nearly 100 year old structure is the rustic backdrop for your vision.
+
+        From unique country weddings to memorable family celebrations and corporate events, Mapleton Barn provides a charming atmosphere for you and your guests to gather and celebrate.
+            
+        Less than an hour from Milwaukee and nestled in the heart of Lake Country, Mapleton Barn has access to a wide variety of food, entertainment, and accommodations without compromising a rustic setting. Rich with natural beauty, Mapleton Barn balances old-world charm with modern conveniences.
+        </p>
+
+    </section>
+
+    <script src="http://code.jquery.com/jquery-3.1.1.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.0.1/dist/leaflet.js"></script>
+    <script>
+        // map.addLayer(tiles);
+        var options = {
+            center: [43.190831, -88.457489],
+            zoom: 12
+        }
+        var map = L.map('map', options);
+        var Esri_WorldStreetMap = L.tileLayer('http://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
+            maxZoom: 17,
+            attribution: 'Tiles &copy; Esri &mdash; Source: Esri, DeLorme, NAVTEQ, USGS, Intermap, iPC, NRCAN, Esri Japan, METI, Esri China (Hong Kong), Esri (Thailand), TomTom, 2012'
+        });
+        map.addLayer(Esri_WorldStreetMap);
+        var Mapleton_Barn = L.latLng(43.190831, -88.457489);
+        console.log("The center of the map is the Mapleton_Barn", Mapleton_Barn);
+        map.on('click', function (e) {
+            var newlatlng = e.latlng;
+            map.setView(newlatlng, 11);
+            console.log("The new center of the map is", newlatlng);
+            var distance = newlatlng.distanceTo(Mapleton_Barn);
+            console.log("The distance in meters between the new center of the map and the Mapleton_Barn is", distance, "meters");
+            var southWest = map.getBounds().getSouthWest()
+            console.log("The southwest bounding coordinates for the new scale level are", southWest);
+            var distanceMapleton_Barn = southWest.distanceTo(Mapleton_Barn);
+            console.log("The distance in meters between the southwest corner of the map and the Mapleton_Barn is", distanceMapleton_Barn, "meters")
+        });
+        L.marker(Mapleton_Barn, {
+            icon: L.icon({
+                iconUrl: 'Mapleton_Barn.png',
+                iconSize: [40, 36]
+            })
+        }).addTo(map);
+        
+       var newMarker;
+        map.on('click', function (e) {
+                    if (map.hasLayer(newMarker)) {
+                        +map.removeLayer(newMarker);
+                    }
+                    var clickLocation = e.latlng;
+                    var distance = clickLocation.distanceTo(Mapleton_Barn) / 1000;
+                    newMarker = L.marker(e.latlng, {
+                        draggable: true,
+                        opacity: 0.9
+                    }).addTo(map);
+                    var popup = buildPopup(distance);
+                    newMarker.bindPopup(popup).openPopup();
+                    newMarker.on('dragend', function (e) {
+                        var newPosition = newMarker.getLatLng();
+                        var newDistance = newPosition.distanceTo(Mapleton_Barn) / 1000;
+                        var popup = buildPopup(newDistance);
+                        newMarker.bindPopup(popup).openPopup();
+//                       
+                    }) 
+        })
+                    function buildPopup(distance) {
+                        return 'Distance to Mapleton_Barn: ' + distance.toLocaleString() + 'km';
+                    } 
+    
+    </script>
+
+</body>
+
+</html>
